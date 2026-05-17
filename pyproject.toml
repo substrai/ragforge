@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "substrai-ragforge"
+version = "0.1.0"
+description = "Config-driven enterprise RAG architecture generator for serverless infrastructure"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+authors = [{name = "Gaurav Kumar Sinha", email = "gaurav@substrai.dev"}]
+keywords = ["rag", "retrieval", "augmented-generation", "serverless", "lambda", "vector-search", "embeddings", "llm"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+]
+dependencies = ["pyyaml>=6.0"]
+
+[project.optional-dependencies]
+aws = ["boto3>=1.28.0"]
+opensearch = ["opensearch-py>=2.0.0"]
+faiss = ["faiss-cpu>=1.7.0"]
+dev = ["pytest>=7.0", "pytest-asyncio>=0.21.0"]
+all = ["boto3>=1.28.0", "opensearch-py>=2.0.0", "faiss-cpu>=1.7.0"]
+
+[project.scripts]
+ragforge = "ragforge.cli.main:main"
+
+[project.urls]
+Homepage = "https://github.com/substrai/ragforge"
+Repository = "https://github.com/substrai/ragforge"
+Documentation = "https://docs.substrai.dev/ragforge"
+Issues = "https://github.com/substrai/ragforge/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
