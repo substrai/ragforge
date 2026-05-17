@@ -1,0 +1,30 @@
+{
+  "name": "substrai-ragforge",
+  "version": "0.1.0",
+  "description": "Config-driven enterprise RAG architecture generator for serverless infrastructure",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "keywords": [
+    "rag",
+    "retrieval-augmented-generation",
+    "vector-search",
+    "embeddings",
+    "serverless",
+    "aws",
+    "lambda",
+    "llm",
+    "genai",
+    "chunking",
+    "opensearch"
+  ],
+  "author": "Gaurav Kumar Sinha <gaurav@substrai.dev>",
+  "license": "MIT",
+  "homepage": "https://substrai.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/substrai/ragforge"
+  },
+  "bugs": {
+    "url": "https://github.com/substrai/ragforge/issues"
+  }
+}

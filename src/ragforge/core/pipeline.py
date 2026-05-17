@@ -24,6 +24,8 @@ class RAGPipeline:
         self._embedder = None
         self._vector_store = None
         self._retriever = None
+        self._metadata_enricher = None
+        self._ingestion_tracker = None
         self._initialized = False
 
     @classmethod
@@ -40,6 +42,19 @@ class RAGPipeline:
         # Initialize chunker registry
         from ragforge.chunkers.registry import ChunkerRegistry
         self._chunker_registry = ChunkerRegistry()
+
+        # Initialize metadata enricher
+        from ragforge.chunkers.metadata import MetadataEnricher
+        extraction_config = self.config.chunking.metadata_extraction
+        self._metadata_enricher = MetadataEnricher(
+            extract_title=extraction_config.get("title", True),
+            extract_dates=extraction_config.get("date", True),
+            extract_word_count=True,
+        )
+
+        # Initialize ingestion tracker
+        from ragforge.ingestion.tracker import IngestionTracker
+        self._ingestion_tracker = IngestionTracker()
 
         # Initialize embedder based on config
         self._embedder = self._create_embedder()
@@ -148,6 +163,11 @@ class RAGPipeline:
 
                 # Chunk the document
                 chunks = chunker.chunk(doc.content, source=doc.source, metadata=doc.metadata)
+
+                # Enrich chunk metadata
+                if self._metadata_enricher:
+                    chunks = self._metadata_enricher.enrich(chunks)
+
                 all_chunks.extend(chunks)
                 stats["documents_processed"] += 1
                 stats["chunks_created"] += len(chunks)
@@ -175,6 +195,49 @@ class RAGPipeline:
                         },
                     )
                     stats["embeddings_generated"] += 1
+
+        return stats
+
+    def ingest_incremental(
+        self, documents: Optional[List[Document]] = None
+    ) -> Dict[str, Any]:
+        """Run incremental ingestion - only processes documents that have changed.
+
+        Uses IngestionTracker to compare document hashes and skip unchanged documents.
+
+        Args:
+            documents: Optional list of documents. If None, loads from configured sources.
+
+        Returns:
+            Ingestion statistics including skipped count.
+        """
+        self._initialize()
+
+        if documents is None:
+            documents = self._load_from_sources()
+
+        # Filter to only changed documents
+        changed_docs = self._ingestion_tracker.filter_changed(documents)
+        skipped_count = len(documents) - len(changed_docs)
+
+        # Ingest only changed documents
+        stats = self.ingest(changed_docs) if changed_docs else {
+            "documents_processed": 0,
+            "chunks_created": 0,
+            "embeddings_generated": 0,
+            "errors": [],
+        }
+
+        # Mark successfully ingested documents
+        if changed_docs:
+            successfully_ingested = [
+                doc for doc in changed_docs
+                if doc.source not in [e.get("source") for e in stats["errors"]]
+            ]
+            self._ingestion_tracker.mark_batch_ingested(successfully_ingested)
+
+        stats["documents_skipped"] = skipped_count
+        stats["documents_changed"] = len(changed_docs)
 
         return stats
 

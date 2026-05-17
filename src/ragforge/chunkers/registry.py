@@ -7,6 +7,9 @@ from typing import Dict, Optional
 from ragforge.chunkers.base import BaseChunker
 from ragforge.chunkers.recursive import RecursiveChunker
 from ragforge.chunkers.semantic import SemanticChunker
+from ragforge.chunkers.code_aware import CodeAwareChunker
+from ragforge.chunkers.table import TableChunker
+from ragforge.chunkers.hierarchical import HierarchicalChunker
 
 
 # Mapping of document types to preferred chunking strategies
@@ -18,13 +21,13 @@ DOC_TYPE_STRATEGY_MAP: Dict[str, str] = {
     "text": "recursive",
     "pdf": "recursive",
     "html": "semantic",
-    "py": "recursive",
-    "js": "recursive",
-    "ts": "recursive",
+    "py": "code_aware",
+    "js": "code_aware",
+    "ts": "code_aware",
     "json": "recursive",
     "yaml": "recursive",
     "yml": "recursive",
-    "csv": "recursive",
+    "csv": "table",
 }
 
 
@@ -39,6 +42,9 @@ class ChunkerRegistry:
         self._chunkers: Dict[str, type] = {
             "recursive": RecursiveChunker,
             "semantic": SemanticChunker,
+            "code_aware": CodeAwareChunker,
+            "table": TableChunker,
+            "hierarchical": HierarchicalChunker,
         }
 
     def register(self, name: str, chunker_class: type) -> None:

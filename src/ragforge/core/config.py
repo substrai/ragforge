@@ -145,7 +145,7 @@ class RAGConfig:
                     f"Hybrid retrieval weights must sum to 1.0, got {total_weight}"
                 )
 
-        valid_strategies = ("auto", "recursive", "semantic", "sentence", "fixed", "adaptive")
+        valid_strategies = ("auto", "recursive", "semantic", "sentence", "fixed", "adaptive", "code_aware", "table", "hierarchical")
         if self.chunking.strategy not in valid_strategies:
             errors.append(f"Invalid chunking strategy: {self.chunking.strategy}")
 
