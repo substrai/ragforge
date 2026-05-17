@@ -91,8 +91,82 @@ def cmd_query(args: argparse.Namespace) -> None:
 
 def cmd_eval(args: argparse.Namespace) -> None:
     """Run evaluation on the RAG pipeline."""
-    print("Evaluation module not yet implemented.")
-    print("Coming soon: retrieval quality metrics (MRR, NDCG, recall@k)")
+    from ragforge.core.pipeline import RAGPipeline
+
+    config_path = args.config or "ragforge.yaml"
+    golden_path = args.golden
+
+    if not golden_path:
+        print("Error: --golden dataset path is required.")
+        print("Usage: ragforge eval --golden ./eval/golden_qa.json")
+        sys.exit(1)
+
+    golden_file = Path(golden_path)
+    if not golden_file.exists():
+        print(f"Error: Golden dataset not found: {golden_file}")
+        sys.exit(1)
+
+    pipeline = RAGPipeline.from_config(config_path)
+    report = pipeline.evaluate(golden_file)
+
+    print("Evaluation Report")
+    print("=" * 50)
+    print(f"Queries evaluated: {report.metrics.get('num_queries', 0)}")
+    print(f"k = {report.metrics.get('k', 5)}")
+    print()
+    print("Aggregate Metrics:")
+    print(f"  Precision@k:  {report.metrics.get('avg_precision_at_k', 0):.4f}")
+    print(f"  Recall@k:     {report.metrics.get('avg_recall_at_k', 0):.4f}")
+    print(f"  MRR:          {report.metrics.get('avg_mrr', 0):.4f}")
+    print(f"  NDCG@k:       {report.metrics.get('avg_ndcg_at_k', 0):.4f}")
+
+    if args.verbose:
+        print()
+        print("Per-Query Results:")
+        print("-" * 50)
+        for result in report.per_query_results:
+            print(f"  Query: {result.query}")
+            print(f"    P@k={result.precision_at_k:.4f}  R@k={result.recall_at_k:.4f}  "
+                  f"MRR={result.mrr:.4f}  NDCG={result.ndcg_at_k:.4f}")
+
+
+def cmd_analytics(args: argparse.Namespace) -> None:
+    """Show query analytics summary."""
+    from ragforge.evaluation.analytics import QueryAnalytics
+
+    analytics_path = args.path or "ragforge_analytics.json"
+    analytics = QueryAnalytics(storage_path=analytics_path)
+    summary = analytics.get_summary()
+
+    print("Query Analytics Summary")
+    print("=" * 50)
+    print(f"Total queries:         {summary['total_queries']}")
+    print(f"Avg latency (ms):      {summary['avg_latency_ms']}")
+    print(f"Zero-result queries:   {summary['zero_result_count']}")
+    print(f"Low-confidence queries: {summary['low_confidence_count']}")
+
+    if summary["queries_per_source"]:
+        print()
+        print("Queries per source:")
+        for source, count in summary["queries_per_source"].items():
+            print(f"  {source}: {count}")
+
+    if args.zero_results:
+        zero_queries = analytics.get_zero_result_queries()
+        if zero_queries:
+            print()
+            print("Zero-result queries:")
+            for q in zero_queries:
+                print(f"  - {q}")
+
+    if args.low_confidence:
+        threshold = args.threshold or 0.5
+        low_conf = analytics.get_low_confidence_queries(threshold=threshold)
+        if low_conf:
+            print()
+            print(f"Low-confidence queries (threshold={threshold}):")
+            for item in low_conf:
+                print(f"  - {item['query']} (max_score={item['max_score']:.4f})")
 
 
 def cmd_deploy(args: argparse.Namespace) -> None:
@@ -155,8 +229,18 @@ def main() -> None:
 
     # eval
     eval_parser = subparsers.add_parser("eval", help="Run evaluation metrics")
+    eval_parser.add_argument("--golden", "-g", type=str, help="Path to golden dataset JSON")
     eval_parser.add_argument("--config", "-c", type=str, help="Config file path")
+    eval_parser.add_argument("--verbose", "-v", action="store_true", help="Show per-query results")
     eval_parser.set_defaults(func=cmd_eval)
+
+    # analytics
+    analytics_parser = subparsers.add_parser("analytics", help="Show query analytics")
+    analytics_parser.add_argument("--path", "-p", type=str, help="Analytics file path")
+    analytics_parser.add_argument("--zero-results", action="store_true", help="Show zero-result queries")
+    analytics_parser.add_argument("--low-confidence", action="store_true", help="Show low-confidence queries")
+    analytics_parser.add_argument("--threshold", type=float, help="Confidence threshold")
+    analytics_parser.set_defaults(func=cmd_analytics)
 
     # deploy
     deploy_parser = subparsers.add_parser("deploy", help="Deploy to AWS")

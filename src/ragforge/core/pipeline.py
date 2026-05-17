@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -26,6 +27,8 @@ class RAGPipeline:
         self._retriever = None
         self._metadata_enricher = None
         self._ingestion_tracker = None
+        self._query_expander = None
+        self._query_analytics = None
         self._initialized = False
 
     @classmethod
@@ -64,6 +67,17 @@ class RAGPipeline:
 
         # Initialize retriever based on config
         self._retriever = self._create_retriever()
+
+        # Initialize query expander
+        from ragforge.retrievers.query_expansion import QueryExpander
+        self._query_expander = QueryExpander()
+
+        # Initialize query analytics
+        from ragforge.evaluation.analytics import QueryAnalytics
+        analytics_path = self.config.quality.evaluation.get(
+            "analytics_path", "ragforge_analytics.json"
+        )
+        self._query_analytics = QueryAnalytics(storage_path=analytics_path)
 
         self._initialized = True
 
@@ -246,6 +260,7 @@ class RAGPipeline:
         query_text: str,
         top_k: Optional[int] = None,
         filters: Optional[Dict[str, Any]] = None,
+        expand_query: Optional[bool] = None,
     ) -> List[QueryResult]:
         """Query the RAG pipeline.
 
@@ -253,6 +268,7 @@ class RAGPipeline:
             query_text: The query string.
             top_k: Number of results to return (overrides config).
             filters: Optional metadata filters.
+            expand_query: Whether to use query expansion (overrides config).
 
         Returns:
             List of QueryResult objects ranked by relevance.
@@ -261,34 +277,54 @@ class RAGPipeline:
 
         k = top_k or self.config.retrieval.top_k
 
-        # Embed the query
-        query_embedding = self._embedder.embed(query_text)
+        # Determine if query expansion is enabled
+        use_expansion = expand_query
+        if use_expansion is None:
+            use_expansion = self.config.quality.evaluation.get("query_expansion", False)
 
-        # Retrieve from vector store
-        raw_results = self._vector_store.search(
-            embedding=query_embedding,
-            top_k=k * 2,  # Over-fetch for reranking
-            filters=filters,
-        )
+        # Expand query if enabled
+        queries_to_run = [query_text]
+        if use_expansion and self._query_expander:
+            queries_to_run = self._query_expander.expand(query_text)
 
-        # Apply retrieval strategy (hybrid scoring, reranking)
-        ranked_results = self._retriever.retrieve(
-            query_text=query_text,
-            query_embedding=query_embedding,
-            candidates=raw_results,
-            top_k=k,
-        )
+        all_results: List[QueryResult] = []
+        seen_chunk_ids: set = set()
 
-        return [
-            QueryResult(
-                content=r.content,
-                score=r.score,
-                source=r.metadata.get("source", "unknown"),
-                chunk_id=r.chunk_id,
-                metadata=r.metadata,
+        for q_text in queries_to_run:
+            # Embed the query
+            query_embedding = self._embedder.embed(q_text)
+
+            # Retrieve from vector store
+            raw_results = self._vector_store.search(
+                embedding=query_embedding,
+                top_k=k * 2,  # Over-fetch for reranking
+                filters=filters,
             )
-            for r in ranked_results
-        ]
+
+            # Apply retrieval strategy (hybrid scoring, reranking)
+            ranked_results = self._retriever.retrieve(
+                query_text=q_text,
+                query_embedding=query_embedding,
+                candidates=raw_results,
+                top_k=k,
+            )
+
+            for r in ranked_results:
+                if r.chunk_id not in seen_chunk_ids:
+                    seen_chunk_ids.add(r.chunk_id)
+                    all_results.append(
+                        QueryResult(
+                            content=r.content,
+                            score=r.score,
+                            source=r.metadata.get("source", "unknown"),
+                            chunk_id=r.chunk_id,
+                            metadata=r.metadata,
+                        )
+                    )
+
+        # Sort all results by score and return top-k
+        all_results.sort(key=lambda r: r.score, reverse=True)
+        return all_results[:k]
 
     def _load_from_sources(self) -> List[Document]:
         """Load documents from configured data sources."""
@@ -361,3 +397,53 @@ class RAGPipeline:
                     )
 
         return documents
+
+    def evaluate(self, golden_dataset_path: str | Path) -> "EvaluationReport":
+        """Run evaluation against a golden dataset.
+
+        Args:
+            golden_dataset_path: Path to the golden dataset JSON file.
+
+        Returns:
+            EvaluationReport with per-query and aggregate metrics.
+        """
+        self._initialize()
+
+        from ragforge.evaluation.runner import EvaluationRunner
+
+        k = self.config.quality.evaluation.get("k", self.config.retrieval.top_k)
+        runner = EvaluationRunner(pipeline=self, k=k)
+        return runner.run(golden_dataset_path)
+
+    def query_with_analytics(
+        self,
+        query_text: str,
+        top_k: Optional[int] = None,
+        filters: Optional[Dict[str, Any]] = None,
+    ) -> List[QueryResult]:
+        """Query the pipeline and record analytics.
+
+        Same as query() but also records latency and result metrics.
+
+        Args:
+            query_text: The query string.
+            top_k: Number of results to return (overrides config).
+            filters: Optional metadata filters.
+
+        Returns:
+            List of QueryResult objects ranked by relevance.
+        """
+        self._initialize()
+
+        start_time = time.time()
+        results = self.query(query_text, top_k=top_k, filters=filters)
+        latency_ms = (time.time() - start_time) * 1000
+
+        if self._query_analytics:
+            self._query_analytics.record_query(
+                query=query_text,
+                results=results,
+                latency_ms=latency_ms,
+            )
+
+        return results
