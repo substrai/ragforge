@@ -29,6 +29,9 @@ class RAGPipeline:
         self._ingestion_tracker = None
         self._query_expander = None
         self._query_analytics = None
+        self._cost_tracker = None
+        self._budget_enforcer = None
+        self._model_router = None
         self._initialized = False
 
     @classmethod
@@ -79,7 +82,42 @@ class RAGPipeline:
         )
         self._query_analytics = QueryAnalytics(storage_path=analytics_path)
 
+        # Initialize cost tracking
+        self._init_cost_components()
+
         self._initialized = True
+
+    def _init_cost_components(self) -> None:
+        """Initialize cost tracking, budget enforcement, and model routing."""
+        from ragforge.cost.tracker import CostTracker
+        from ragforge.cost.enforcer import BudgetEnforcer
+        from ragforge.cost.model_router import EmbeddingModelRouter
+
+        cost_path = self.config.cost.optimization.get(
+            "cost_path", "ragforge_costs.json"
+        )
+        self._cost_tracker = CostTracker(storage_path=cost_path)
+
+        # Budget enforcer
+        daily_budget = self.config.cost.budget.get("daily_total", 10.0)
+        monthly_budget = self.config.cost.budget.get("monthly_total", 100.0)
+        action = self.config.cost.optimization.get("action_on_exceed", "alert")
+        self._budget_enforcer = BudgetEnforcer(
+            cost_tracker=self._cost_tracker,
+            daily_budget=daily_budget,
+            monthly_budget=monthly_budget,
+            action_on_exceed=action,
+        )
+
+        # Model router (only if cost optimization is enabled)
+        if self.config.cost.optimization.get("model_routing", False):
+            lite_model = self.config.cost.optimization.get("lite_model", "local/dev")
+            threshold = self.config.cost.optimization.get("complexity_threshold", 0.5)
+            self._model_router = EmbeddingModelRouter(
+                full_model=self.config.embedding.model,
+                lite_model=lite_model,
+                complexity_threshold=threshold,
+            )
 
     def _create_embedder(self) -> BaseEmbedder:
         """Create embedder based on configuration."""
@@ -191,11 +229,23 @@ class RAGPipeline:
 
         # Embed all chunks in batches
         if all_chunks:
+            # Check budget before embedding
+            if self._budget_enforcer:
+                self._budget_enforcer.check_budget()
+
             batch_size = self.config.embedding.batch_size
             for i in range(0, len(all_chunks), batch_size):
                 batch = all_chunks[i : i + batch_size]
                 texts = [c.content for c in batch]
                 embeddings = self._embedder.embed_batch(texts)
+
+                # Record embedding cost
+                if self._cost_tracker:
+                    token_estimate = sum(int(len(t.split()) * 1.3) for t in texts)
+                    self._cost_tracker.record_embedding_cost(
+                        tokens=token_estimate,
+                        model=self.config.embedding.model,
+                    )
 
                 # Store embeddings
                 for chunk, embedding in zip(batch, embeddings):
@@ -277,6 +327,12 @@ class RAGPipeline:
 
         k = top_k or self.config.retrieval.top_k
 
+        # Check budget before query
+        if self._budget_enforcer:
+            budget_action = self._budget_enforcer.check_budget()
+        else:
+            budget_action = "ok"
+
         # Determine if query expansion is enabled
         use_expansion = expand_query
         if use_expansion is None:
@@ -291,8 +347,24 @@ class RAGPipeline:
         seen_chunk_ids: set = set()
 
         for q_text in queries_to_run:
+            # Use model router if available and not downgraded
+            embedding_model = self.config.embedding.model
+            if self._model_router and budget_action != "downgrade":
+                embedding_model = self._model_router.route(q_text)
+            elif budget_action == "downgrade" and self._model_router:
+                embedding_model = self._model_router.lite_model
+
             # Embed the query
             query_embedding = self._embedder.embed(q_text)
+
+            # Record query cost
+            if self._cost_tracker:
+                token_estimate = int(len(q_text.split()) * 1.3)
+                self._cost_tracker.record_query_cost(
+                    query=q_text,
+                    tokens=token_estimate,
+                    model=embedding_model,
+                )
 
             # Retrieve from vector store
             raw_results = self._vector_store.search(
@@ -447,3 +519,36 @@ class RAGPipeline:
             )
 
         return results
+
+    def get_cost_report(self) -> Dict[str, Any]:
+        """Get a cost report for the pipeline.
+
+        Returns:
+            Dictionary with total cost, breakdown by category,
+            daily cost, monthly forecast, and budget status.
+        """
+        self._initialize()
+
+        if not self._cost_tracker:
+            return {"error": "Cost tracking not initialized"}
+
+        report: Dict[str, Any] = {
+            "total_cost": self._cost_tracker.get_total_cost(),
+            "breakdown": self._cost_tracker.get_cost_breakdown(),
+            "daily_cost": self._cost_tracker.get_daily_cost(),
+            "monthly_forecast": self._cost_tracker.get_monthly_forecast(),
+        }
+
+        if self._budget_enforcer:
+            status = self._budget_enforcer.get_budget_status()
+            report["budget_status"] = {
+                "daily_limit": status.daily_limit,
+                "daily_spent": status.daily_spent,
+                "daily_remaining": status.daily_remaining,
+                "monthly_limit": status.monthly_limit,
+                "monthly_spent": status.monthly_spent,
+                "monthly_remaining": status.monthly_remaining,
+                "is_exceeded": status.is_exceeded,
+            }
+
+        return report

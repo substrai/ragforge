@@ -1,0 +1,194 @@
+{
+  "records": [
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779061774.5765681,
+      "details": {
+        "tokens": 88,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779061774.5799701,
+      "details": {
+        "tokens": 88,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779061774.582056,
+      "details": {
+        "tokens": 88,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779061774.583061,
+      "details": {
+        "tokens": 88,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "retrieval",
+      "amount": 0.0,
+      "timestamp": 1779061774.583224,
+      "details": {
+        "query": "What is Python?",
+        "tokens": 3,
+        "model": "local/dev"
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779061774.583998,
+      "details": {
+        "tokens": 88,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "retrieval",
+      "amount": 0.0,
+      "timestamp": 1779061774.5841439,
+      "details": {
+        "query": "programming language",
+        "tokens": 2,
+        "model": "local/dev"
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779061774.584806,
+      "details": {
+        "tokens": 88,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "retrieval",
+      "amount": 0.0,
+      "timestamp": 1779061774.58495,
+      "details": {
+        "query": "machine learning",
+        "tokens": 2,
+        "model": "local/dev"
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779061774.585601,
+      "details": {
+        "tokens": 88,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "retrieval",
+      "amount": 0.0,
+      "timestamp": 1779061774.5857458,
+      "details": {
+        "query": "serverless",
+        "tokens": 1,
+        "model": "local/dev"
+      }
+    },
+    {
+      "category": "retrieval",
+      "amount": 0.0,
+      "timestamp": 1779061774.5862641,
+      "details": {
+        "query": "anything",
+        "tokens": 1,
+        "model": "local/dev"
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779061774.586841,
+      "details": {
+        "tokens": 88,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "retrieval",
+      "amount": 0.0,
+      "timestamp": 1779061774.587002,
+      "details": {
+        "query": "programming",
+        "tokens": 1,
+        "model": "local/dev"
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779061774.587722,
+      "details": {
+        "tokens": 138,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "retrieval",
+      "amount": 0.0,
+      "timestamp": 1779061774.5879302,
+      "details": {
+        "query": "fox jumping",
+        "tokens": 2,
+        "model": "local/dev"
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779061774.5885692,
+      "details": {
+        "tokens": 5,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779061774.588763,
+      "details": {
+        "tokens": 5,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "retrieval",
+      "amount": 0.0,
+      "timestamp": 1779061774.588942,
+      "details": {
+        "query": "batch content",
+        "tokens": 2,
+        "model": "local/dev"
+      }
+    }
+  ]
+}

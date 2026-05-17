@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "substrai-ragforge"
-version = "0.3.0"
+version = "0.4.0"
 description = "Config-driven enterprise RAG architecture generator for serverless infrastructure"
 readme = "README.md"
 license = {text = "MIT"}

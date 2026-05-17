@@ -175,6 +175,95 @@ def cmd_deploy(args: argparse.Namespace) -> None:
     print("Coming soon: AWS CDK/SAM deployment for Lambda + OpenSearch Serverless")
 
 
+def cmd_cost(args: argparse.Namespace) -> None:
+    """Show cost breakdown and monthly forecast."""
+    from ragforge.cost.tracker import CostTracker
+
+    cost_path = args.path or "ragforge_costs.json"
+    tracker = CostTracker(storage_path=cost_path)
+
+    total = tracker.get_total_cost()
+    breakdown = tracker.get_cost_breakdown()
+    daily = tracker.get_daily_cost()
+    forecast = tracker.get_monthly_forecast()
+
+    print("RAGForge Cost Report")
+    print("=" * 50)
+    print(f"Total cost:        ${total:.6f}")
+    print(f"Today's cost:      ${daily:.6f}")
+    print(f"Monthly forecast:  ${forecast:.6f}")
+    print()
+    print("Breakdown by category:")
+    for category, amount in breakdown.items():
+        print(f"  {category:12s}: ${amount:.6f}")
+
+    if args.detailed:
+        records = tracker.get_records()
+        if records:
+            print()
+            print(f"Recent records ({min(10, len(records))} of {len(records)}):")
+            for r in records[-10:]:
+                print(f"  [{r.category}] ${r.amount:.6f} - {r.details}")
+
+
+def cmd_optimize(args: argparse.Namespace) -> None:
+    """Show optimization recommendations."""
+    from ragforge.cost.tracker import CostTracker
+    from ragforge.cost.quantization import EmbeddingQuantizer
+
+    cost_path = args.path or "ragforge_costs.json"
+    tracker = CostTracker(storage_path=cost_path)
+    quantizer = EmbeddingQuantizer()
+
+    print("RAGForge Optimization Recommendations")
+    print("=" * 50)
+
+    breakdown = tracker.get_cost_breakdown()
+    total = tracker.get_total_cost()
+
+    recommendations = []
+
+    # Check if embedding costs dominate
+    if total > 0 and breakdown.get("embedding", 0) / total > 0.5:
+        recommendations.append(
+            "Embedding costs are >50% of total. Consider:\n"
+            "  - Enable model routing (route simple queries to cheaper models)\n"
+            "  - Increase batch sizes to reduce API call overhead"
+        )
+
+    # Quantization savings estimate
+    dimensions = args.dimensions or 1024
+    vectors = args.vectors or 10000
+    savings_f16 = quantizer.estimate_savings(vectors, dimensions, "float16")
+    savings_i8 = quantizer.estimate_savings(vectors, dimensions, "int8")
+
+    recommendations.append(
+        f"Storage quantization savings (for {vectors:,} vectors, {dimensions}d):\n"
+        f"  - float16: {savings_f16['savings_percentage']}% savings "
+        f"({savings_f16['savings_bytes'] / 1024 / 1024:.1f} MB saved)\n"
+        f"  - int8:    {savings_i8['savings_percentage']}% savings "
+        f"({savings_i8['savings_bytes'] / 1024 / 1024:.1f} MB saved)"
+    )
+
+    # Model routing recommendation
+    if not args.routing_enabled:
+        recommendations.append(
+            "Enable model routing in config to automatically use cheaper\n"
+            "  models for simple queries:\n"
+            "  cost:\n"
+            "    optimization:\n"
+            "      model_routing: true\n"
+            "      lite_model: local/dev\n"
+            "      complexity_threshold: 0.5"
+        )
+
+    for i, rec in enumerate(recommendations, 1):
+        print(f"\n{i}. {rec}")
+
+    if not recommendations:
+        print("\nNo optimization recommendations at this time.")
+
+
 def cmd_status(args: argparse.Namespace) -> None:
     """Show pipeline status."""
     from ragforge.core.config import load_config
@@ -247,6 +336,20 @@ def main() -> None:
     deploy_parser.add_argument("--config", "-c", type=str, help="Config file path")
     deploy_parser.add_argument("--stage", type=str, default="dev", help="Deployment stage")
     deploy_parser.set_defaults(func=cmd_deploy)
+
+    # cost
+    cost_parser = subparsers.add_parser("cost", help="Show cost breakdown and forecast")
+    cost_parser.add_argument("--path", "-p", type=str, help="Cost data file path")
+    cost_parser.add_argument("--detailed", "-d", action="store_true", help="Show detailed records")
+    cost_parser.set_defaults(func=cmd_cost)
+
+    # optimize
+    optimize_parser = subparsers.add_parser("optimize", help="Show optimization recommendations")
+    optimize_parser.add_argument("--path", "-p", type=str, help="Cost data file path")
+    optimize_parser.add_argument("--dimensions", type=int, help="Embedding dimensions")
+    optimize_parser.add_argument("--vectors", type=int, help="Number of vectors")
+    optimize_parser.add_argument("--routing-enabled", action="store_true", help="Model routing is enabled")
+    optimize_parser.set_defaults(func=cmd_optimize)
 
     # status
     status_parser = subparsers.add_parser("status", help="Show pipeline status")
