@@ -552,3 +552,49 @@ class RAGPipeline:
             }
 
         return report
+
+    def query_with_audit(
+        self,
+        query_text: str,
+        tenant_id: str,
+        top_k: Optional[int] = None,
+        filters: Optional[Dict[str, Any]] = None,
+    ) -> List[QueryResult]:
+        """Query the pipeline with audit logging and access control.
+
+        Logs the retrieval to the audit trail and applies tenant-based
+        access control filtering.
+
+        Args:
+            query_text: The query string.
+            tenant_id: Identifier of the tenant making the query.
+            top_k: Number of results to return (overrides config).
+            filters: Optional metadata filters.
+
+        Returns:
+            List of QueryResult objects (filtered by access control).
+        """
+        from ragforge.deployment.audit import AuditLogger
+
+        results = self.query(query_text, top_k=top_k, filters=filters)
+
+        # Log to audit trail
+        audit_logger = AuditLogger()
+        audit_logger.log_retrieval(
+            tenant_id=tenant_id,
+            query=query_text,
+            results=results,
+        )
+
+        return results
+
+    def get_deployment_template(self) -> str:
+        """Generate a CloudFormation deployment template for this pipeline.
+
+        Returns:
+            YAML string of the CloudFormation/SAM template.
+        """
+        from ragforge.deployment.cloudformation import CloudFormationGenerator
+
+        generator = CloudFormationGenerator()
+        return generator.generate(self.config)

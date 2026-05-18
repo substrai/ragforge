@@ -189,6 +189,386 @@
         "tokens": 2,
         "model": "local/dev"
       }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779062394.492429,
+      "details": {
+        "tokens": 88,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779062394.493964,
+      "details": {
+        "tokens": 88,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779062394.494674,
+      "details": {
+        "tokens": 88,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779062394.495359,
+      "details": {
+        "tokens": 88,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "retrieval",
+      "amount": 0.0,
+      "timestamp": 1779062394.495598,
+      "details": {
+        "query": "What is Python?",
+        "tokens": 3,
+        "model": "local/dev"
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779062394.4963782,
+      "details": {
+        "tokens": 88,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "retrieval",
+      "amount": 0.0,
+      "timestamp": 1779062394.49662,
+      "details": {
+        "query": "programming language",
+        "tokens": 2,
+        "model": "local/dev"
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779062394.497366,
+      "details": {
+        "tokens": 88,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "retrieval",
+      "amount": 0.0,
+      "timestamp": 1779062394.497615,
+      "details": {
+        "query": "machine learning",
+        "tokens": 2,
+        "model": "local/dev"
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779062394.498372,
+      "details": {
+        "tokens": 88,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "retrieval",
+      "amount": 0.0,
+      "timestamp": 1779062394.4986272,
+      "details": {
+        "query": "serverless",
+        "tokens": 1,
+        "model": "local/dev"
+      }
+    },
+    {
+      "category": "retrieval",
+      "amount": 0.0,
+      "timestamp": 1779062394.499298,
+      "details": {
+        "query": "anything",
+        "tokens": 1,
+        "model": "local/dev"
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779062394.499987,
+      "details": {
+        "tokens": 88,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "retrieval",
+      "amount": 0.0,
+      "timestamp": 1779062394.50025,
+      "details": {
+        "query": "programming",
+        "tokens": 1,
+        "model": "local/dev"
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779062394.501033,
+      "details": {
+        "tokens": 138,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "retrieval",
+      "amount": 0.0,
+      "timestamp": 1779062394.501311,
+      "details": {
+        "query": "fox jumping",
+        "tokens": 2,
+        "model": "local/dev"
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779062394.502002,
+      "details": {
+        "tokens": 5,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779062394.5022871,
+      "details": {
+        "tokens": 5,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "retrieval",
+      "amount": 0.0,
+      "timestamp": 1779062394.5025642,
+      "details": {
+        "query": "batch content",
+        "tokens": 2,
+        "model": "local/dev"
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779062416.860972,
+      "details": {
+        "tokens": 88,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779062416.862293,
+      "details": {
+        "tokens": 88,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779062416.8630762,
+      "details": {
+        "tokens": 88,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779062416.8638442,
+      "details": {
+        "tokens": 88,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "retrieval",
+      "amount": 0.0,
+      "timestamp": 1779062416.864175,
+      "details": {
+        "query": "What is Python?",
+        "tokens": 3,
+        "model": "local/dev"
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779062416.8650649,
+      "details": {
+        "tokens": 88,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "retrieval",
+      "amount": 0.0,
+      "timestamp": 1779062416.8654048,
+      "details": {
+        "query": "programming language",
+        "tokens": 2,
+        "model": "local/dev"
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779062416.8662348,
+      "details": {
+        "tokens": 88,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "retrieval",
+      "amount": 0.0,
+      "timestamp": 1779062416.866559,
+      "details": {
+        "query": "machine learning",
+        "tokens": 2,
+        "model": "local/dev"
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779062416.86739,
+      "details": {
+        "tokens": 88,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "retrieval",
+      "amount": 0.0,
+      "timestamp": 1779062416.8677251,
+      "details": {
+        "query": "serverless",
+        "tokens": 1,
+        "model": "local/dev"
+      }
+    },
+    {
+      "category": "retrieval",
+      "amount": 0.0,
+      "timestamp": 1779062416.868495,
+      "details": {
+        "query": "anything",
+        "tokens": 1,
+        "model": "local/dev"
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779062416.8692758,
+      "details": {
+        "tokens": 88,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "retrieval",
+      "amount": 0.0,
+      "timestamp": 1779062416.869647,
+      "details": {
+        "query": "programming",
+        "tokens": 1,
+        "model": "local/dev"
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779062416.870521,
+      "details": {
+        "tokens": 138,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "retrieval",
+      "amount": 0.0,
+      "timestamp": 1779062416.8709052,
+      "details": {
+        "query": "fox jumping",
+        "tokens": 2,
+        "model": "local/dev"
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779062416.871715,
+      "details": {
+        "tokens": 5,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "embedding",
+      "amount": 0.0,
+      "timestamp": 1779062416.872088,
+      "details": {
+        "tokens": 5,
+        "model": "local/dev",
+        "price_per_1k": 0.0
+      }
+    },
+    {
+      "category": "retrieval",
+      "amount": 0.0,
+      "timestamp": 1779062416.872458,
+      "details": {
+        "query": "batch content",
+        "tokens": 2,
+        "model": "local/dev"
+      }
     }
   ]
 }

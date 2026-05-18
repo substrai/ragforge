@@ -171,8 +171,53 @@ def cmd_analytics(args: argparse.Namespace) -> None:
 
 def cmd_deploy(args: argparse.Namespace) -> None:
     """Deploy the RAG pipeline to AWS."""
-    print("Deployment module not yet implemented.")
-    print("Coming soon: AWS CDK/SAM deployment for Lambda + OpenSearch Serverless")
+    from ragforge.core.config import load_config
+    from ragforge.deployment.cloudformation import CloudFormationGenerator
+    from ragforge.deployment.environments import EnvironmentResolver
+
+    config_path = args.config or "ragforge.yaml"
+    env_name = args.env or "dev"
+
+    config = load_config(config_path)
+
+    # Resolve environment overrides
+    resolver = EnvironmentResolver()
+    resolved_config = resolver.resolve(config, env_name)
+
+    # Generate template
+    generator = CloudFormationGenerator()
+    template_yaml = generator.generate(resolved_config)
+
+    print(f"CloudFormation template for environment: {env_name}")
+    print("=" * 60)
+    print(template_yaml)
+
+
+def cmd_eject(args: argparse.Namespace) -> None:
+    """Eject infrastructure templates to ./infrastructure/."""
+    from ragforge.core.config import load_config
+    from ragforge.deployment.cloudformation import CloudFormationGenerator
+    from ragforge.deployment.cicd import CICDGenerator
+
+    config_path = args.config or "ragforge.yaml"
+    output_dir = Path(args.output or "./infrastructure")
+
+    config = load_config(config_path)
+
+    # Generate CloudFormation template
+    cfn_generator = CloudFormationGenerator()
+    cfn_path = output_dir / "template.yaml"
+    cfn_generator.write_template(config, cfn_path)
+    print(f"CloudFormation template written to: {cfn_path}")
+
+    # Generate GitHub Actions workflow
+    cicd_generator = CICDGenerator()
+    workflow_path = output_dir / ".github" / "workflows" / "deploy.yml"
+    cicd_generator.write_workflow(config, workflow_path)
+    print(f"GitHub Actions workflow written to: {workflow_path}")
+
+    print(f"\nInfrastructure files ejected to: {output_dir}")
+    print("You can now customize these templates for your deployment needs.")
 
 
 def cmd_cost(args: argparse.Namespace) -> None:
@@ -334,8 +379,14 @@ def main() -> None:
     # deploy
     deploy_parser = subparsers.add_parser("deploy", help="Deploy to AWS")
     deploy_parser.add_argument("--config", "-c", type=str, help="Config file path")
-    deploy_parser.add_argument("--stage", type=str, default="dev", help="Deployment stage")
+    deploy_parser.add_argument("--env", type=str, default="dev", help="Deployment environment (dev/staging/prod)")
     deploy_parser.set_defaults(func=cmd_deploy)
+
+    # eject
+    eject_parser = subparsers.add_parser("eject", help="Eject infrastructure templates")
+    eject_parser.add_argument("--config", "-c", type=str, help="Config file path")
+    eject_parser.add_argument("--output", "-o", type=str, help="Output directory (default: ./infrastructure)")
+    eject_parser.set_defaults(func=cmd_eject)
 
     # cost
     cost_parser = subparsers.add_parser("cost", help="Show cost breakdown and forecast")
